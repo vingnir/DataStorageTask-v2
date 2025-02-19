@@ -1,7 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 
 export default function ProjectForm({ onSaved }) {
+
+  const router = useRouter();
+
   // Basic project data
   const [projectNumber, setProjectNumber] = useState("");
   const [name, setName] = useState("");
@@ -161,19 +166,23 @@ export default function ProjectForm({ onSaved }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(projectData),
       });
-  
+    
+      const result = await response.json(); // Get server response
+    
       if (!response.ok) {
-        const errorText = await response.text();
-        alert(`Error: ${errorText}`);
+        console.error("Server Error:", result);
+        alert(`Error: ${result.message || "Failed to save project."}`);
         return;
       }
-  
+    
       alert("Project created successfully!");
       if (onSaved) onSaved();
+      router.push("/Projects");
     } catch (error) {
       console.error("Error saving project:", error);
-      alert("An error occurred while saving the project.");
+      alert("An unexpected error occurred.");
     }
+    
   }
   
 
@@ -183,12 +192,12 @@ export default function ProjectForm({ onSaved }) {
 
   return (
     <div style={styles.container}>
-      <h2>Skapa Nytt Projekt</h2>
+      <h2>Create a new Project</h2>
 
       {/* Basic Project Fields */}
       <div style={styles.row}>
         <div style={styles.column}>
-          <label style={styles.label}>Projektnr</label>
+          <label style={styles.label}>Project Number</label>
           <input
             style={styles.input}
             value={projectNumber}
@@ -196,7 +205,7 @@ export default function ProjectForm({ onSaved }) {
           />
         </div>
         <div style={styles.column}>
-          <label style={styles.label}>Benämning</label>
+          <label style={styles.label}>Label</label>
           <input
             style={styles.input}
             value={name}
@@ -207,7 +216,7 @@ export default function ProjectForm({ onSaved }) {
 
       <div style={styles.row}>
         <div style={styles.column}>
-          <label style={styles.label}>Startdatum</label>
+          <label style={styles.label}>Start Date</label>
           <input
             style={styles.input}
             type="date"
@@ -216,7 +225,7 @@ export default function ProjectForm({ onSaved }) {
           />
         </div>
         <div style={styles.column}>
-          <label style={styles.label}>Slutdatum</label>
+          <label style={styles.label}>End Date</label>
           <input
             style={styles.input}
             type="date"
@@ -235,7 +244,7 @@ export default function ProjectForm({ onSaved }) {
             value={statusId}
             onChange={(e) => setStatusId(e.target.value)}
           >
-            <option value="">Välj status</option>
+            <option value="">Select status</option>
             {statuses.map((s) => (
               <option key={s.statusId} value={s.statusId}>
                 {s.name}
@@ -244,7 +253,7 @@ export default function ProjectForm({ onSaved }) {
           </select>
         </div>
         <div style={styles.column}>
-          <label style={styles.label}>Totalpris</label>
+          <label style={styles.label}>Total Price</label>
           <input
             style={styles.input}
             type="number"
@@ -256,7 +265,7 @@ export default function ProjectForm({ onSaved }) {
 
       <div style={styles.row}>
         <div style={styles.column}>
-          <label style={styles.label}>Beskrivning</label>
+          <label style={styles.label}>Description</label>
           <textarea
             style={styles.textarea}
             value={description}
@@ -266,12 +275,12 @@ export default function ProjectForm({ onSaved }) {
       </div>
 
       <hr />
-      <h3>Kund</h3>
+      <h3>Customer</h3>
       <div style={styles.row}>
         <div style={styles.column}>
-          <label style={styles.label}>Välj kund (befintlig)</label>
+          <label style={styles.label}>Select/Create Customer</label>
           <select style={styles.input} value={customerId} onChange={handleCustomerSelect}>
-            <option value="">Välj kund</option>
+            <option value="">New Customer</option>
             {customers.map((c) => (
               <option key={c.customerId} value={c.customerId}>
                 {c.name}
@@ -280,7 +289,7 @@ export default function ProjectForm({ onSaved }) {
           </select>
         </div>
         <div style={styles.column}>
-          <label style={styles.label}>Nytt Kundnamn</label>
+          <label style={styles.label}>New Customer name</label>
           <input
             style={styles.input}
             value={customerName}
@@ -288,7 +297,7 @@ export default function ProjectForm({ onSaved }) {
           />
         </div>
         <div style={styles.column}>
-          <label style={styles.label}>Kontaktperson</label>
+          <label style={styles.label}>New Contact Person</label>
           <input
             style={styles.input}
             value={contactPerson}
@@ -298,12 +307,12 @@ export default function ProjectForm({ onSaved }) {
       </div>
 
       <hr />
-      <h3>Välj Tjänst</h3>
+      <h3>Service</h3>
       <div style={styles.row}>
         <div style={styles.column}>
-          <label style={styles.label}>Befintlig Tjänst</label>
+          <label style={styles.label}> Select/Create Service</label>
           <select style={styles.input} value={selectedServiceId} onChange={handleServiceChange}>
-            <option value="">Välj tjänst</option>
+            <option value="">New Service</option>
             {services.map((svc) => (
               <option key={svc.serviceId} value={svc.serviceId}>
                 {svc.name}
@@ -312,7 +321,7 @@ export default function ProjectForm({ onSaved }) {
           </select>
         </div>
         <div style={styles.column}>
-          <label style={styles.label}>Tjänstnamn (ny eller befintlig)</label>
+          <label style={styles.label}>New Service</label>
           <input
             style={styles.input}
             value={serviceName}
@@ -320,7 +329,7 @@ export default function ProjectForm({ onSaved }) {
           />
         </div>
         <div style={styles.column}>
-          <label style={styles.label}>Timpris</label>
+          <label style={styles.label}>Hourly Price</label>
           <input
             style={styles.input}
             type="number"
@@ -331,12 +340,12 @@ export default function ProjectForm({ onSaved }) {
       </div>
 
       <hr />
-      <h3>Välj Personal</h3>
+      <h3>Staff</h3>
       <div style={styles.row}>
         <div style={styles.column}>
-          <label style={styles.label}>Befintlig Personal</label>
+          <label style={styles.label}>Select/Create Staff</label>
           <select style={styles.input} value={selectedStaffId} onChange={handleStaffChange}>
-            <option value="">Välj personal</option>
+            <option value="">New Staff</option>
             {staff.map((st) => (
               <option key={st.staffId} value={st.staffId}>
                 {st.name}
@@ -345,7 +354,7 @@ export default function ProjectForm({ onSaved }) {
           </select>
         </div>
         <div style={styles.column}>
-          <label style={styles.label}>Namn (ny eller befintlig)</label>
+          <label style={styles.label}>New Name</label>
           <input
             style={styles.input}
             value={staffName}
@@ -353,7 +362,7 @@ export default function ProjectForm({ onSaved }) {
           />
         </div>
         <div style={styles.column}>
-          <label style={styles.label}>Roll</label>
+          <label style={styles.label}>New Role</label>
           <input
             style={styles.input}
             value={staffRole}
@@ -363,15 +372,15 @@ export default function ProjectForm({ onSaved }) {
       </div>
 
       <div style={styles.buttonRow}>
-        <button style={styles.cancelButton} onClick={handleCancel}>Avbryt</button>
-        <button style={styles.saveButton} onClick={handleSave}>Spara</button>
+        <button style={styles.cancelButton} onClick={handleCancel}>Cancel</button>
+        <button style={styles.saveButton} onClick={handleSave}>Save</button>
       </div>
     </div>
   );
 }
 
 const styles = {
-  container: { maxWidth: "800px", margin: "0 auto", padding: "20px", fontFamily: "Arial, sans-serif", backgroundColor: "#f8f8f8" },
+  container: { maxWidth: "800px", margin: "0 auto", padding: "20px", fontFamily: "Arial, sans-serif", backgroundColor: "#005a38", color: "#ffcc00" },
   row: { display: "flex", flexWrap: "wrap", marginBottom: "15px" },
   column: { flex: "1 1 200px", marginRight: "20px", marginBottom: "10px", minWidth: "200px" },
   label: { display: "block", marginBottom: "5px", fontWeight: "bold" },
@@ -379,5 +388,6 @@ const styles = {
   textarea: { width: "100%", padding: "6px", height: "60px", boxSizing: "border-box" },
   buttonRow: { display: "flex", justifyContent: "flex-end", marginTop: "20px" },
   cancelButton: { backgroundColor: "#ccc", color: "#000", padding: "8px 16px", border: "none", marginRight: "10px", cursor: "pointer" },
-  saveButton: { backgroundColor: "#4caf50", color: "#fff", padding: "8px 16px", border: "none", cursor: "pointer" },
+  saveButton: { backgroundColor: "#f9e700", color: "#161616", padding: "8px 16px", border: "none", cursor: "pointer" },
+  saveButtonHover: { backgroundColor: "#ffee02" }
 };

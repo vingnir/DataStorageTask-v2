@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import styles from "./HomePage.module.css"; // Import the CSS module
 
 export default function HomePage() {
   const [projectCount, setProjectCount] = useState(0);
@@ -10,7 +11,6 @@ export default function HomePage() {
       try {
         const res = await fetch("http://localhost:5127/api/projects");
         
-        // Debugging: Log response status
         console.log("Response Status:", res.status);
   
         if (!res.ok) {
@@ -19,7 +19,6 @@ export default function HomePage() {
   
         const data = await res.json();
         
-        // Debugging: Log the response data
         console.log("Fetched Data:", data);
   
         setProjectCount(data.length);
@@ -33,16 +32,16 @@ export default function HomePage() {
   
 
   return (
-    <div style={{ padding: "2rem", textAlign: "center" }}>
-      <h1>Välkommen till Projektportalen</h1>
-      <p>Antal projekt i systemet: <strong>{projectCount}</strong></p>
+    <div className={styles.container}>
+      <h1>Pavado´s Development</h1>
+      <p>Number of projects: <strong>{projectCount}</strong></p>
 
-      <div style={{ marginTop: "1rem" }}>
-        <a href="/Projects" style={{ marginRight: "1rem", fontSize: "1.2rem" }}>
-          📂 Alla Projekt
+      <div className={styles.links}>
+        <a href="/Projects" className={styles.link1}>
+          📂 All projects
         </a>
-        <a href="/Projects/Create" style={{ fontSize: "1.2rem" }}>
-          ➕ Skapa Nytt Projekt
+        <a href="/Projects/Create" className={styles.link2}>
+          ➕ Create a new project
         </a>
       </div>
     </div>

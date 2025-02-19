@@ -1,0 +1,67 @@
+/* HomePage.module.css */
+
+.container {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    max-width: 1320px;
+    margin: 0 auto;
+    background-color: #005a38;
+    border: 1px solid #ddd;
+  }
+
+  .container h1 {
+    color: #fff;
+    font-size: 2.5rem;
+  }
+
+  .container p {
+    color: #fff;
+    font-size: 1.5rem;
+  }
+  
+  .links {
+    margin-top: 1rem;
+  }
+  
+  .link {
+    margin-right: 1rem;
+    font-size: 1.2rem;
+    text-decoration: none;
+    color: blue;
+  }
+
+  .link1 {
+    margin-right: 1rem;
+    font-size: 1.2rem;
+    text-decoration: none;
+    color: #161616;
+    background-color: #f9e700;
+    border-radius: 5px;
+    padding: 1rem;
+    border: 1px solid rgb(1, 1, 39);
+  }
+  
+  .link2 {
+    margin-right: 1rem;
+    font-size: 1.2rem;
+    text-decoration: none;
+    color: #161616;
+    background-color: #f9e700;
+    border-radius: 5px;
+    padding: 1rem;
+    border: 1px solid rgb(1, 1, 39);
+  }
+
+  .link1:hover {
+    text-decoration: none;
+    background-color: #ffee02;
+  }
+  .link2:hover {
+    text-decoration: none;
+    background-color: #ffee02;
+  }
+  

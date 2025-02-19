@@ -77,12 +77,12 @@ export default function ProjectsPage() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1>Alla Projekt</h1>
+        <h1>All Projects</h1>
         <div>
-          <label>Sök:</label>
+          <label>Search for Project number or Customer name:</label>
           <input
             type="text"
-            placeholder="Sök på projektnr eller kundnamn"
+            placeholder="Search"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             className={styles.searchInput}
@@ -91,14 +91,22 @@ export default function ProjectsPage() {
       </header>
 
       {editingProject ? (
-        <EditProjectForm project={editingProject} onUpdate={updateProject} onCancel={() => setEditingProject(null)} />
-      ) : (
-        <ProjectsList 
-          projects={filteredProjects} 
-          onDelete={deleteProject}  // ✅ Pass `onDelete`
-          onEdit={startEditingProject}  // ✅ Pass `onEdit`
-        />
-      )}
+  <EditProjectForm 
+    project={editingProject} 
+    onUpdated={() => {
+      setEditingProject(null);  
+      fetchProjects();          
+    }} 
+    onCancelled={() => setEditingProject(null)}
+  />
+) : (
+  <ProjectsList 
+    projects={filteredProjects} 
+    onDelete={deleteProject}  
+    onEdit={startEditingProject}  
+  />
+)}
+
     </div>
   );
 }
