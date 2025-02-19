@@ -9,8 +9,8 @@ public class ProjectCreateDetailedDto
     public int CustomerId { get; set; }
 
 
-    public ServiceDto Service { get; set; } // Creates or finds the service
-    public StaffDto Staff { get; set; }     // Creates or finds the staff
+    public ServiceDto? Service { get; set; } // Creates or finds the service
+    public StaffDto? Staff { get; set; }     // Creates or finds the staff
     public CustomerDto? Customer { get; set; }
 
     public int ServiceId { get; set; }

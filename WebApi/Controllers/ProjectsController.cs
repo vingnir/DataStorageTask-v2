@@ -63,14 +63,21 @@ namespace WebApi.Controllers
             try
             {
                 var newNumber = await _projectService.CreateProjectWithDetailsAsync(model);
-                return CreatedAtAction(nameof(Get), new { projectNumber = newNumber }, newNumber);
+
+                // Return JSON object, e.g. { "message": "...", "projectNumber": "P-226" }
+                return CreatedAtAction(
+                    nameof(Get),
+                    new { projectNumber = newNumber },
+                    new { message = "Project created successfully!", projectNumber = newNumber }
+                );
             }
             catch (Exception ex)
             {
-                // Optionally log the exception
+                // ...
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
 
 
 
