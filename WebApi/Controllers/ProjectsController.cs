@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Business.Dtos;
 using Business.Interfaces;
+using Business.Services;
 using Data.Contexts;
 using Data.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,7 @@ namespace WebApi.Controllers
         IProjectService projectService,
         IStaffService staffService,
         IServiceService serviceService,
+        ICustomerService customerService,
         AppDbContext context) : ControllerBase
     {
         private readonly IProjectService _projectService = projectService;
@@ -76,27 +78,72 @@ namespace WebApi.Controllers
         [HttpPut("{projectNumber}")]
         public async Task<IActionResult> UpdateProject(string projectNumber, [FromBody] ProjectDto dto)
         {
-            var existingProject = await _projectService.GetProjectByNumberAsync(projectNumber);
-            if (existingProject == null)
-            {
-                return NotFound(new { message = $"Project '{projectNumber}' not found." });
-            }
+            // Start a transaction to ensure atomicity
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            if (dto.StaffId <= 0)
+            try
             {
-                return BadRequest(new { message = "Invalid StaffId." });
-            }
+                // Check if the project exists
+                var existingProject = await _projectService.GetProjectByNumberAsync(projectNumber);
+                if (existingProject == null)
+                {
+                    return NotFound(new { message = $"Project '{projectNumber}' not found." });
+                }
 
-            var staffExists = await _staffService.CheckStaffExistsAsync(dto.StaffId);
-            if (!staffExists)
+                // 🚀 **Check if Staff exists**
+                if (dto.StaffId <= 0)
+                {
+                    return BadRequest(new { message = "Invalid StaffId." });
+                }
+
+                var staffExists = await _staffService.CheckStaffExistsAsync(dto.StaffId);
+                if (!staffExists)
+                {
+                    return BadRequest(new { message = $"StaffId {dto.StaffId} does not exist." });
+                }
+
+                // 🚀 **Ensure Customer Exists OR Create a New One**
+                if (dto.CustomerId <= 0 && dto.Customer != null)
+                {
+                    // If a new customer is provided, create and assign a new CustomerId
+                    var newCustomer = new Customer
+                    {
+                        Name = dto.Customer.Name,
+                        ContactPerson = dto.Customer.ContactPerson
+                    };
+
+                    _context.Customers.Add(newCustomer);
+                    await _context.SaveChangesAsync();
+
+                    dto.CustomerId = newCustomer.CustomerId;  // Assign the newly created ID to dto
+                }
+                else if (dto.CustomerId > 0)
+                {
+                    // If an existing customer is selected, check if it exists
+                    var customerExists = await customerService.CheckCustomerExistsAsync(dto.CustomerId);
+                    if (!customerExists)
+                    {
+                        return BadRequest(new { message = $"CustomerId {dto.CustomerId} does not exist." });
+                    }
+                }
+
+                // Update the project with the correct CustomerId
+                dto.ProjectNumber = projectNumber;
+                await _projectService.UpdateProjectAsync(dto);
+
+                // Commit the transaction if everything succeeds
+                await transaction.CommitAsync();
+
+                return NoContent();
+            }
+            catch (Exception ex)
             {
-                return BadRequest(new { message = $"StaffId {dto.StaffId} does not exist." });
+                await transaction.RollbackAsync(); // Rollback on failure
+                return StatusCode(500, new { message = "An error occurred while updating the project.", error = ex.Message });
             }
-
-            dto.ProjectNumber = projectNumber;
-            await _projectService.UpdateProjectAsync(dto);
-            return NoContent();
         }
+
+
 
 
         [HttpDelete("{projectNumber}")]

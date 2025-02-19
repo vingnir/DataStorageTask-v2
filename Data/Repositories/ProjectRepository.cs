@@ -29,7 +29,7 @@ namespace Data.Repositories
                 .Include(p => p.Status)
                 .Include(p => p.Service)
                 .Include(p => p.Staff)
-                    .ThenInclude(s => s.Role)
+                .ThenInclude(s => s.Role)
                 .FirstOrDefaultAsync(p => p.ProjectNumber == projectNumber) ?? new Project();
         }
 

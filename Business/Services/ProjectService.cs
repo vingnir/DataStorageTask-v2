@@ -7,12 +7,14 @@ namespace Business.Services
 {
     public class ProjectService(IProjectRepository projectRepo,
                           IStaffService staffService,
-                          IServiceService serviceService) : IProjectService
+                          IServiceService serviceService, 
+                          ICustomerService customerService) : IProjectService
     {
         private readonly IProjectRepository _projectRepo = projectRepo;
         private readonly IStaffService _staffService = staffService;
         private readonly IServiceService _serviceService = serviceService;
-        
+        private readonly ICustomerService _customerService = customerService;
+
 
 
         public async Task<IEnumerable<ProjectDto>> GetAllProjectsAsync()
@@ -25,27 +27,27 @@ namespace Business.Services
                 StartDate = p.StartDate,
                 EndDate = p.EndDate,
                 CustomerName = p.Customer != null ? p.Customer.Name : "Ingen kund",
+                ContactPerson = p.Customer != null ? p.Customer.ContactPerson : "Ingen kontaktperson",
                 ServiceId = p.ServiceId,
                 StaffId = p.StaffId,
                 StatusName = p.Status.Name != null ? p.Status.Name : "Ingen status",
                 TotalPrice = p.TotalPrice,
                 Description = p.Description,
 
+                Service = p.Service != null ? new ServiceDto
+                {
+                    Name = p.Service.Name,
+                    HourlyPrice = p.Service.HourlyPrice
+                } : null,
 
-                 Service = p.Service != null ? new ServiceDto
-                 {
-                     Name = p.Service.Name,
-                     HourlyPrice = p.Service.HourlyPrice
-                 } : null,
-
-                 Staff = p.Staff != null
+                Staff = p.Staff != null
                     ? new StaffDto
                     {
                         Name = p.Staff.Name,
-                            RoleName = p.Staff.Role.Name ?? "Unknown role" 
-                        }
-                        : null
-                    });
+                        RoleName = p.Staff.Role.Name ?? "Unknown role"
+                    }
+                    : null,
+            });
         }
 
         public async Task<ProjectDto> GetProjectByNumberAsync(string projectNumber)
@@ -107,32 +109,56 @@ namespace Business.Services
             if (dto.Staff == null)
                 throw new ArgumentNullException(nameof(dto.Staff), "Staff is required.");
 
-            // 1) Ensure or create the Service first
-            var serviceId = await _serviceService.EnsureServiceAsync(dto.Service);
+            // 1) Determine the final CustomerId
+            int finalCustomerId = 0;
 
-            // 2) Ensure or create the Staff
-            var staffId = await _staffService.EnsureStaffAsync(dto.Staff);
+            // If user picked an existing customer from the dropdown
+            if (dto.CustomerId > 0)
+            {
+                finalCustomerId = dto.CustomerId; // Use the existing ID
+            }
+            else if (dto.Customer != null)
+            {
+                // They want to create a new customer
+                finalCustomerId = await _customerService.EnsureCustomerAsync(
+                    dto.Customer.Name,
+                    dto.Customer.ContactPerson
+                );
+            }
+            else
+            {
+                // Possibly error or let them continue with no customer
+                throw new ArgumentException("Either CustomerId > 0 or Customer data is required.");
+            }
 
-            // 3) Construct Project with correct foreign keys
+            // 2) Ensure/Find the Service
+            int serviceId = await _serviceService.EnsureServiceAsync(dto.Service);
+
+            // 3) Ensure/Find the Staff
+            int staffId = await _staffService.EnsureStaffAsync(dto.Staff);
+
+            // 4) Construct the new Project
             var projectEntity = new Project
             {
                 ProjectNumber = dto.ProjectNumber,
                 Name = dto.Name,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
-                CustomerId = dto.CustomerId,
-                ServiceId = serviceId,  // Use the ensured ID
-                StaffId = staffId,      // Use the ensured ID
+                CustomerId = finalCustomerId,
+                ServiceId = serviceId,
+                StaffId = staffId,
                 StatusId = dto.StatusId,
                 TotalPrice = dto.TotalPrice,
                 Description = dto.Description
             };
 
-            // 4) Insert Project into DB
+            // 5) Insert into DB
             await _projectRepo.AddAsync(projectEntity);
 
             return dto.ProjectNumber;
         }
+
+
 
 
 
@@ -151,6 +177,8 @@ namespace Business.Services
             existing.StartDate = dto.StartDate;
             existing.EndDate = dto.EndDate;
             existing.CustomerId = dto.CustomerId;
+            existing.ServiceId = dto.ServiceId;
+            existing.StaffId = dto.StaffId;
             existing.StatusId = dto.StatusId;
             existing.TotalPrice = dto.TotalPrice;
             existing.Description = dto.Description;
@@ -168,6 +196,12 @@ namespace Business.Services
                 // This checks by Staff name + role; if not found, create it:
                 var staffId = await _staffService.EnsureStaffAsync(dto.Staff);
                 existing.StaffId = staffId;
+            }
+            if (dto.Customer != null)
+            {
+                // This checks by Customer name; if not found, create it:
+                var customerId = await _customerService.EnsureCustomerAsync(dto.Customer.Name, dto.Customer.ContactPerson);
+                existing.CustomerId = customerId;
             }
 
             // Finally save
