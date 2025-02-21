@@ -9,7 +9,8 @@ public class StaffRepository(AppDbContext context) : BaseRepository<Staff>(conte
 {
     public async Task<Staff> GetByNameAndRoleIdAsync(string staffName, int roleId)
     {
-        return await _context.Staff
-            .FirstOrDefaultAsync(s => s.Name == staffName && s.RoleId == roleId);
+        var staff = await (_context.Staff
+            .FirstOrDefaultAsync(s => s.Name == staffName && s.RoleId == roleId) ?? Task.FromResult<Staff?>(null));
+        return staff!;
     }
 }

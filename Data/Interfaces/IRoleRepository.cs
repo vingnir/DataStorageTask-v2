@@ -1,9 +1,8 @@
 ﻿using Data.Entities;
 
-namespace Data.Interfaces
+namespace Data.Interfaces;
+
+public interface IRoleRepository : IRepository<Role>
 {
-    public interface IRoleRepository : IRepository<Role>
-    {
-        Task<Role> GetByNameAsync(string roleName);
-    }
+    Task<Role> GetByNameAsync(string roleName);
 }

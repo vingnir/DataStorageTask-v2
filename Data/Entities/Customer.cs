@@ -1,13 +1,12 @@
-﻿using System.Collections.Generic;
+﻿
 
-namespace Data.Entities
+namespace Data.Entities;
+
+public class Customer
 {
-    public class Customer
-    {
-        public int CustomerId { get; set; }
-        public string Name { get; set; }
-        public string ContactPerson { get; set; }
+    public int CustomerId { get; set; }
+    public string Name { get; set; }
+    public string ContactPerson { get; set; }
 
-        public ICollection<Project> Projects { get; set; }
-    }
+    public ICollection<Project> Projects { get; set; }
 }

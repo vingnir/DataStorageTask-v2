@@ -1,10 +1,9 @@
 ﻿using Business.Dtos;
 
-namespace Business.Interfaces
+namespace Business.Interfaces;
+
+public interface IStaffService
 {
-    public interface IStaffService
-    {
-        Task<int> EnsureStaffAsync(StaffDto staffDto);
-        Task<bool> CheckStaffExistsAsync(int staffId);
-    }
+    Task<int> EnsureStaffAsync(StaffDto staffDto);
+    Task<bool> CheckStaffExistsAsync(int staffId);
 }

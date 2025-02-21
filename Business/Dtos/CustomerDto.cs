@@ -2,7 +2,7 @@
 
 public class CustomerDto
 {
-    public string Name { get; set; }
-    public string ContactPerson { get; set; }
+    public string? Name { get; set; }
+    public string? ContactPerson { get; set; }
 }
 

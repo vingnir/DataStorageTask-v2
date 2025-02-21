@@ -1,9 +1,8 @@
 ﻿using Data.Entities;
 
-namespace Data.Interfaces
+namespace Data.Interfaces;
+
+public interface IStaffRepository : IRepository<Staff>
 {
-    public interface IStaffRepository : IRepository<Staff>
-    {
-        Task<Staff> GetByNameAndRoleIdAsync(string staffName, int roleId);
-    }
+    Task<Staff> GetByNameAndRoleIdAsync(string staffName, int roleId);
 }

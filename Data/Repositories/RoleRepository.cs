@@ -9,7 +9,9 @@ public class RoleRepository(AppDbContext context) : BaseRepository<Role>(context
 {
     public async Task<Role> GetByNameAsync(string roleName)
     {
-        return await (_context.Roles?.FirstOrDefaultAsync(r => r.Name == roleName) ?? Task.FromResult<Role?>(null));
+        var role = await (_context.Roles
+            .FirstOrDefaultAsync(r => r.Name == roleName) ?? Task.FromResult<Role?>(null));
+        return role!;
     }
 
 }

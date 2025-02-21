@@ -1,9 +1,8 @@
-﻿using Business.Dtos;
+﻿
 
-namespace Business.Interfaces
+namespace Business.Interfaces;
+
+public interface IRoleService
 {
-    public interface IRoleService
-    {
-        Task<int> EnsureRoleAsync(string roleName);
-    }
+    Task<int> EnsureRoleAsync(string roleName);
 }

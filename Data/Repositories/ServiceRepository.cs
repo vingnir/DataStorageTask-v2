@@ -9,7 +9,9 @@ public class ServiceRepository(AppDbContext context) : BaseRepository<Service>(c
 {
     public async Task<Service> GetByNameAsync(string serviceName)
     {
-        return await (_context.Services?.FirstOrDefaultAsync(s => s.Name == serviceName) ?? Task.FromResult<Service?>(null));
+        var service = await (_context.Services
+            .FirstOrDefaultAsync(s => s.Name == serviceName) ?? Task.FromResult<Service?>(null));
+        return service!;
     }
 
 

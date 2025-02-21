@@ -1,9 +1,8 @@
 ﻿using Business.Dtos;
 
-namespace Business.Interfaces
+namespace Business.Interfaces;
+
+public interface IServiceService
 {
-    public interface IServiceService
-    {
-        Task<int> EnsureServiceAsync(ServiceDto serviceDto);
-    }
+    Task<int> EnsureServiceAsync(ServiceDto serviceDto);
 }
