@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 
+// Mostly take from ProjectForm.jsx but modified to handle editing
+
 export default function EditProjectForm({ project, onUpdated, onCancelled }) {
-  // Top-level project fields
+
   const [projectNumber, setProjectNumber] = useState(project.projectNumber);
   const [name, setName] = useState(project.name || "");
   const [startDate, setStartDate] = useState(project.startDate || "");
@@ -11,30 +13,29 @@ export default function EditProjectForm({ project, onUpdated, onCancelled }) {
   const [totalPrice, setTotalPrice] = useState(project.totalPrice?.toString() || "");
   const [description, setDescription] = useState(project.description || "");
 
-  // Customer fields
-  // For existing customer selection:
+
   const [customerId, setCustomerId] = useState(project.customerId?.toString() || "");
-  // For new customer creation:
+  
   const [customerName, setCustomerName] = useState(project.customer?.name || "");
   const [contactPerson, setContactPerson] = useState(project.customer?.contactPerson || "");
 
-  // Service fields
+ 
   const [selectedServiceId, setSelectedServiceId] = useState(project.service?.serviceId?.toString() || "");
   const [serviceName, setServiceName] = useState(project.service?.name || "");
   const [hourlyPrice, setHourlyPrice] = useState(project.service?.hourlyPrice?.toString() || "");
 
-  // Staff fields
+
   const [selectedStaffId, setSelectedStaffId] = useState(project.staff?.staffId?.toString() || "");
   const [staffName, setStaffName] = useState(project.staff?.name || "");
   const [staffRole, setStaffRole] = useState(project.staff?.roleName || "");
 
-  // Dropdown data arrays
+
   const [statuses, setStatuses] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [services, setServices] = useState([]);
   const [staff, setStaff] = useState([]);
 
-  // --- Fetch dropdown data (Status, Customer, Services, Staff) ---
+ 
   useEffect(() => {
     async function fetchDropdownData() {
       try {
@@ -68,7 +69,7 @@ export default function EditProjectForm({ project, onUpdated, onCancelled }) {
     fetchDropdownData();
   }, []);
 
-  // --- Handler for customer dropdown ---
+  
   function handleCustomerSelect(e) {
     const newId = e.target.value;
     setCustomerId(newId);
@@ -82,7 +83,7 @@ export default function EditProjectForm({ project, onUpdated, onCancelled }) {
     }
   }
 
-  // --- Handler for service dropdown ---
+ 
   function handleServiceChange(e) {
     const newId = e.target.value;
     setSelectedServiceId(newId);
@@ -96,7 +97,7 @@ export default function EditProjectForm({ project, onUpdated, onCancelled }) {
     }
   }
 
-  // --- Handler for staff dropdown ---
+
   function handleStaffChange(e) {
     const newId = e.target.value;
     setSelectedStaffId(newId);
@@ -110,24 +111,25 @@ export default function EditProjectForm({ project, onUpdated, onCancelled }) {
     }
   }
 
-  // --- Handle form submission (PUT to update project) ---
+  
   async function handleUpdate() {
     const parsedStatusId = parseInt(statusId, 10) || 0;
     const parsedCustomerId = customerId ? parseInt(customerId, 10) : 0;
     const parsedTotalPrice = parseFloat(totalPrice) || 0;
     const parsedHourlyPrice = parseFloat(hourlyPrice) || 0;
     
-    // Get the selected staffId or fallback to the existing one
+  
     const parsedStaffId = selectedStaffId
         ? parseInt(selectedStaffId, 10)
         : project.staff?.staffId || 0;
 
-    // Get the selected serviceId or fallback to the existing one
+  
     const parsedServiceId = selectedServiceId
         ? parseInt(selectedServiceId, 10)
         : project.service?.serviceId || 0;
 
-    // **🚨 Validation: Ensure valid StaffId & ServiceId**
+
+  
     if (!parsedStaffId || parsedStaffId === 0) {
         alert("Error: Please select a valid Staff.");
         return;
@@ -137,7 +139,7 @@ export default function EditProjectForm({ project, onUpdated, onCancelled }) {
         return;
     }
 
-    // **🚀 Handle Customer Logic**
+   
     const hasExistingCustomer = parsedCustomerId > 0;
 
     const updatedProject = {
@@ -158,7 +160,8 @@ export default function EditProjectForm({ project, onUpdated, onCancelled }) {
             name: staffName,
             roleName: staffRole,
         },
-        // If an existing customer is selected, use customerId
+        // Made by copilot
+        // If an existing customer is selected, use customerId or else create a new customer
         ...(hasExistingCustomer
             ? { customerId: parsedCustomerId }
             : {
@@ -200,15 +203,16 @@ export default function EditProjectForm({ project, onUpdated, onCancelled }) {
   
 
 function handleCancel() {
-  console.log("Cancel button clicked!"); // ✅ Debugging log
+  console.log("Cancel button clicked!");
   if (onCancelled) {
     onCancelled();
-    window.location.reload(); // 🔄 Force page refresh (temporary fix)
+    window.location.reload();
   }
 }
 
 
   return (
+    <div style={styles.wrapper}>
     <div style={styles.container}>
       <h2>Redigera Projekt</h2>
 
@@ -357,15 +361,14 @@ function handleCancel() {
         </button>
       </div>
     </div>
+  </div>
+      
   );
 }
 
-// Move handleCustomerSelect inside the component so state is accessible
+
 function handleCustomerSelect(e) {
-  // In this example, this function should be defined inside the component.
-  // If you're moving it outside, you'll need to pass state setters as arguments.
-  // For simplicity, define it inside the component body.
-  // (The above code already calls setCustomerId, etc., so remove this external function.)
+
 }
 
 const styles = {
@@ -376,6 +379,8 @@ const styles = {
     fontFamily: "Arial, sans-serif",
     backgroundColor: "#005a38",
     color: "#f9e700",
+    border: "1px solid #ccc",
+    borderRadius: "5px",
   },
   row: {
     display: "flex",

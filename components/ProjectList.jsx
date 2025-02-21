@@ -64,14 +64,16 @@ export default function ProjectsList({ projects, onEdit, onDelete }) {
                   </button>
                 </td>
               </tr>
+              {/* // Made with chatGpt 4o
+              // Shows a dropdown with project details when the row is clicked */}
               {expandedProject === proj.projectNumber && (
                 <tr className={styles.dropdownRow} key={`details-${proj.projectNumber}`}>
                   <td colSpan="14">
                     <div className={styles.dropdownContent}>
                       <p><strong>Description:</strong> {proj.description || "No description provided."}</p>
                       <p><strong>Label:</strong> {proj.name || "No label provided."}</p>
-                      <p><strong>Price/hour:</strong> {proj.totalPrice ? `${proj.totalPrice} kr` : "N/A"}</p>
-                      <p><strong>Total Price:</strong> {proj.service?.hourlyPrice ? `${proj.service.hourlyPrice} kr` : "N/A"}</p>
+                      <p><strong>Price/hour:</strong> {proj.service?.hourlyPrice ? `${proj.service.hourlyPrice} kr` : "N/A"}</p>
+                      <p><strong>Total Price:</strong> {proj.totalPrice ? `${proj.totalPrice} kr` : "N/A"}</p>
                     </div>
                   </td>
                 </tr>

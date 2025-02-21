@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import styles from "./HomePage.module.css"; // Import the CSS module
+import styles from "./HomePage.module.css";
 
 export default function HomePage() {
   const [projectCount, setProjectCount] = useState(0);

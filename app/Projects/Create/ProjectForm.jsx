@@ -73,24 +73,27 @@ export default function ProjectForm({ onSaved }) {
     fetchDropdownData();
   }, []);
 
-  // --- Handle customer selection from dropdown ---
+  // A few aouto suggestions from copilot and some filled in by me
+  //  Handles the customer selection from the dropdown
+  // If it finds a customer it will set the customer name and contact person
+  // If no customer is selected it will reset the new customer fields
   function handleCustomerSelect(e) {
-    const newCustomerId = e.target.value; // string
+    const newCustomerId = e.target.value; 
     setCustomerId(newCustomerId);
 
-    // If found in the existing customers, fill in name/contact
+ 
     const chosen = customers.find((c) => c.customerId === parseInt(newCustomerId, 10));
     if (chosen) {
       setCustomerName(chosen.name);
       setContactPerson(chosen.contactPerson || "");
     } else {
-      // If none selected, reset the new-customer fields
+  
       setCustomerName("");
       setContactPerson("");
     }
   }
 
-  // --- Handle service selection from dropdown ---
+  // Made by me by looking a the one used for the customer
   function handleServiceChange(e) {
     const newServiceId = e.target.value;
     setSelectedServiceId(newServiceId);
@@ -105,7 +108,7 @@ export default function ProjectForm({ onSaved }) {
     }
   }
 
-  // --- Handle staff selection from dropdown ---
+  // Same here
   function handleStaffChange(e) {
     const newStaffId = e.target.value;
     setSelectedStaffId(newStaffId);
@@ -120,14 +123,13 @@ export default function ProjectForm({ onSaved }) {
     }
   }
 
-  // --- Handle "save" (POST to create) ---
+
   async function handleSave() {
     const parsedStatusId = parseInt(statusId, 10) || 0;
     const parsedCustomerId = customerId ? parseInt(customerId, 10) : 0;
     const parsedTotalPrice = parseFloat(totalPrice) || 0;
     const parsedHourlyPrice = parseFloat(hourlyPrice) || 0;
   
-    // If user picked a dropdown ID
     const hasExistingCustomer = parsedCustomerId > 0;
   
     const projectData = {
@@ -149,9 +151,9 @@ export default function ProjectForm({ onSaved }) {
         roleName: staffRole,
       },
     };
-  
+    // From copilot auto suggestion
     if (hasExistingCustomer) {
-      // If the user picked an existing customer from the dropdown
+      
       projectData.customerId = parsedCustomerId;
       // Optionally remove "customer" object so the server won't try to create a new one
     } else {
@@ -169,7 +171,7 @@ export default function ProjectForm({ onSaved }) {
         body: JSON.stringify(projectData),
       });
     
-      const result = await response.json(); // Get server response
+      const result = await response.json(); 
     
       if (!response.ok) {
         console.error("Server Error:", result);
@@ -188,12 +190,14 @@ export default function ProjectForm({ onSaved }) {
   }
   
 
-  // --- Handle "cancel" ---
+ 
   function handleCancel() {
-    if (confirm("Are you sure you want to cancel?")) {
+    if (confirm("Are you sure you want to cancel? All inputs will be lost.")) {
       router.push("/");
     }
   }
+
+  // Base created by chatGpt 4o but modified by me
 
   return (
     <div style={styles.container}>

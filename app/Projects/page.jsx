@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ProjectsList from "@/components/ProjectList"; // ✅ Ensure correct import
-import EditProjectForm from "./edit/EditProjectForm"; // ✅ Ensure correct import
+import ProjectsList from "@/components/ProjectList"; 
+import EditProjectForm from "./edit/EditProjectForm";
 import styles from "@/styles/ProjectList.module.css";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [searchText, setSearchText] = useState("");
-  const [editingProject, setEditingProject] = useState(null); // ✅ Track which project is being edited
+  const [editingProject, setEditingProject] = useState(null);
 
   useEffect(() => {
     fetchProjects();
