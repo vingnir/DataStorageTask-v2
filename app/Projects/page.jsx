@@ -78,6 +78,12 @@ export default function ProjectsPage() {
     <div className={styles.container}>
       <header className={styles.header}>
         <h1>All Projects</h1>
+        <a href="/" className={styles.link1}>
+          Home
+        </a>
+        <a href="/Projects/Create" className={styles.link2}>
+          ➕ Create a new project
+        </a>
         <div>
           <label>Search for Project number or Customer name:</label>
           <input

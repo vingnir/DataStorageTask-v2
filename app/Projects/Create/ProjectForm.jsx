@@ -7,7 +7,7 @@ export default function ProjectForm({ onSaved }) {
 
   const router = useRouter();
 
-  // Basic project data
+  
   const [projectNumber, setProjectNumber] = useState("");
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -16,28 +16,30 @@ export default function ProjectForm({ onSaved }) {
   const [totalPrice, setTotalPrice] = useState("");
   const [description, setDescription] = useState("");
 
-  // **Customers**: pick existing or create new
+
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [contactPerson, setContactPerson] = useState("");
 
-  // **Services**
+  
   const [selectedServiceId, setSelectedServiceId] = useState("");
   const [serviceName, setServiceName] = useState("");
   const [hourlyPrice, setHourlyPrice] = useState("");
 
-  // **Staff**
+ 
   const [selectedStaffId, setSelectedStaffId] = useState("");
   const [staffName, setStaffName] = useState("");
   const [staffRole, setStaffRole] = useState("");
 
-  // Dropdown data
+ 
   const [statuses, setStatuses] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [services, setServices] = useState([]);
   const [staff, setStaff] = useState([]);
 
-  // --- Fetch dropdown data ---
+  // From copilot auto suggestion
+  //  Fetch dropdown data from API then checks if it OK, if it is OK it will convert the data to JSON and set the data to the state
+  // Also handles errors
   useEffect(() => {
     async function fetchDropdownData() {
       try {
@@ -186,8 +188,11 @@ export default function ProjectForm({ onSaved }) {
   }
   
 
+  // --- Handle "cancel" ---
   function handleCancel() {
-    alert("Cancelled");
+    if (confirm("Are you sure you want to cancel?")) {
+      router.push("/");
+    }
   }
 
   return (
