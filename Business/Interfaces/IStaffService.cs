@@ -6,4 +6,6 @@ public interface IStaffService
 {
     Task<int> EnsureStaffAsync(StaffDto staffDto);
     Task<bool> CheckStaffExistsAsync(int staffId);
+
+    Task<IEnumerable<StaffDto>> GetAllStaffAsync();
 }

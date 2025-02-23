@@ -2,6 +2,9 @@
 using Business.Interfaces;
 using Data.Entities;
 using Data.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Business.Services;
 
@@ -13,7 +16,7 @@ public class ServiceService : IServiceService
     {
         _serviceRepo = serviceRepo;
     }
-    // Based on CustomerService but i have written it myself.
+
     public async Task<int> EnsureServiceAsync(ServiceDto serviceDto)
     {
         if (serviceDto == null)
@@ -39,7 +42,15 @@ public class ServiceService : IServiceService
         return newService.ServiceId;
     }
 
+    
+    public async Task<IEnumerable<ServiceDto>> GetAllServicesAsync()
+    {
+        var services = await _serviceRepo.GetAllAsync();
 
-
-
+        return services.Select(s => new ServiceDto
+        {
+            Name = s.Name,
+            HourlyPrice = s.HourlyPrice
+        }).ToList();
+    }
 }

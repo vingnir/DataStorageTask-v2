@@ -1,16 +1,17 @@
-﻿using Business.Interfaces;
+﻿using Business.Dtos;
+using Business.Interfaces;
 using Data.Entities;
 using Data.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Business.Services;
 
 public class CustomerService(ICustomerRepository customerRepo) : ICustomerService
 {
     private readonly ICustomerRepository _customerRepo = customerRepo;
-    // Created by chatGpt 4o
-    // Checks if a customer with the given name exists in the database.
-    // If not, creates a new customer with the input written. Like name and contact person.
-    // And returns customer ID.
+
     public async Task<int> EnsureCustomerAsync(string name, string contactPerson)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -29,14 +30,22 @@ public class CustomerService(ICustomerRepository customerRepo) : ICustomerServic
         await _customerRepo.AddAsync(newCustomer);
         return newCustomer.CustomerId;
     }
-    
+
     public async Task<bool> CheckCustomerExistsAsync(int customerId)
     {
         var customer = await _customerRepo.GetByIdAsync(customerId);
         return customer != null;
     }
 
-    
-   
+    public async Task<IEnumerable<CustomerDto>> GetAllCustomersAsync()
+    {
+        var customers = await _customerRepo.GetAllAsync();  // ✅ Uses `BaseRepository<T>.GetAllAsync()`
 
+        return customers.Select(c => new CustomerDto
+        {
+           
+            Name = c.Name,
+            ContactPerson = c.ContactPerson
+        }).ToList();
+    }
 }

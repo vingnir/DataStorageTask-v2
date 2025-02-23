@@ -5,4 +5,5 @@ namespace Data.Interfaces;
 public interface IProjectRepository : IRepository<Project>
 {
     Task ExecuteInTransactionAsync(Func<Task> value);
+    Task<IEnumerable<Status>> GetProjectStatusesAsync();
 }

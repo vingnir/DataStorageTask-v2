@@ -41,6 +41,20 @@ public class StaffService : IStaffService
         return newStaff.StaffId;
     }
 
+    // Get All Staff (Mapping to DTO)
+    public async Task<IEnumerable<StaffDto>> GetAllStaffAsync()
+    {
+        var staffList = await _staffRepo.GetAllWithRolesAsync();  // ✅ Query handled by repository
+
+        return staffList.Select(s => new StaffDto
+        {
+            StaffId = s.StaffId,
+            Name = s.Name,
+            RoleName = s.Role?.Name ?? "No Role"
+        }).ToList();  // ✅ Convert to DTO
+    }
+
+
     public async Task<bool> CheckStaffExistsAsync(int staffId)
     {
         var staff = await _staffRepo.GetAsync(staffId);

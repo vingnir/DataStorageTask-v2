@@ -2,6 +2,7 @@
 using Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Data.Repositories
@@ -11,11 +12,12 @@ namespace Data.Repositories
         private readonly ILogger<StaffRepository> _logger;
 
         public StaffRepository(IUnitOfWork unitOfWork, ILogger<StaffRepository> logger)
-            : base(unitOfWork, logger) 
+            : base(unitOfWork, logger)
         {
             _logger = logger;
         }
 
+      
         public async Task<Staff?> GetByNameAndRoleIdAsync(string staffName, int roleId)
         {
             if (string.IsNullOrEmpty(staffName) || roleId <= 0)
@@ -28,6 +30,16 @@ namespace Data.Repositories
 
             return await _unitOfWork.GetDbSet<Staff>()
                 .FirstOrDefaultAsync(s => s.Name == staffName && s.RoleId == roleId);
+        }
+
+       
+        public async Task<IEnumerable<Staff>> GetAllWithRolesAsync()
+        {
+            _logger.LogDebug("Fetching all staff with roles");
+
+            return await _unitOfWork.GetDbSet<Staff>()
+                .Include(s => s.Role)  
+                .ToListAsync() ?? new List<Staff>();
         }
     }
 }

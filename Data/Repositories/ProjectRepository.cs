@@ -50,5 +50,15 @@ namespace Data.Repositories
                 .ThenInclude(s => s.Role)
                 .FirstOrDefaultAsync(p => p.ProjectNumber == projectNumber) ?? new Project();
         }
+
+        public async Task<IEnumerable<Status>> GetProjectStatusesAsync()
+        {
+            return await _unitOfWork.GetDbSet<Status>()
+                .Where(s => s.StatusId.HasValue && !string.IsNullOrEmpty(s.Name))
+                .ToListAsync() ?? new List<Status>();
+        }
+
+
+
     }
 }

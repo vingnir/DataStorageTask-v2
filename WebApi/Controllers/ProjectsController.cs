@@ -1,10 +1,6 @@
-﻿
-using Business.Dtos;
+﻿using Business.Dtos;
 using Business.Interfaces;
-using Data.Contexts;
-using Data.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace WebApi.Controllers;
 
@@ -14,15 +10,13 @@ public class ProjectsController(
     IProjectService projectService,
     IStaffService staffService,
     IServiceService serviceService,
-    ICustomerService customerService,
-    AppDbContext context) : ControllerBase
+    ICustomerService customerService) : ControllerBase
 {
     private readonly IProjectService _projectService = projectService;
     private readonly IStaffService _staffService = staffService;
     private readonly IServiceService _serviceService = serviceService;
-    private readonly AppDbContext _context = context;  
+    private readonly ICustomerService _customerService = customerService;
 
-   
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -30,7 +24,6 @@ public class ProjectsController(
         return Ok(projects);
     }
 
-    
     [HttpGet("{projectNumber}")]
     public async Task<IActionResult> Get(string projectNumber)
     {
@@ -38,14 +31,13 @@ public class ProjectsController(
         return project == null ? NotFound() : Ok(project);
     }
 
-    
     [HttpPost]
     public async Task<IActionResult> CreateProject([FromBody] ProjectDto dto)
     {
         try
         {
             var newNumber = await _projectService.CreateProjectAsync(dto);
-            return CreatedAtAction(nameof(Get), new { projectNumber = newNumber }, newNumber);
+            return CreatedAtAction(nameof(Get), new { projectNumber = newNumber }, new { message = "Project created successfully!", projectNumber = newNumber });
         }
         catch (ArgumentException ex)
         {
@@ -62,7 +54,6 @@ public class ProjectsController(
         try
         {
             var newNumber = await _projectService.CreateProjectWithDetailsAsync(model);
-            // Got help from chatGpt 4o to figure out how to return a JSON object
             return CreatedAtAction(
                 nameof(Get),
                 new { projectNumber = newNumber },
@@ -75,16 +66,9 @@ public class ProjectsController(
         }
     }
 
-    // Create by me but with help from chatGpt 4o
-    // Updates a project with the given project number.
-    // Checks if project, staff, customer exists in the database.
-    // updates the project with the new details.
-    // Returns no content.
     [HttpPut("{projectNumber}")]
     public async Task<IActionResult> UpdateProject(string projectNumber, [FromBody] ProjectDto dto)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-
         try
         {
             var existingProject = await _projectService.GetProjectByNumberAsync(projectNumber);
@@ -105,20 +89,11 @@ public class ProjectsController(
 
             if (dto.CustomerId <= 0 && dto.Customer != null)
             {
-                var newCustomer = new Customer
-                {
-                    Name = dto.Customer.Name ?? string.Empty,
-                    ContactPerson = dto.Customer.ContactPerson ?? string.Empty
-                };
-
-                _context.Customers.Add(newCustomer);
-                await _context.SaveChangesAsync();
-
-                dto.CustomerId = newCustomer.CustomerId; 
+                dto.CustomerId = await _customerService.EnsureCustomerAsync(dto.Customer.Name, dto.Customer.ContactPerson);
             }
             else if (dto.CustomerId > 0)
             {
-                var customerExists = await customerService.CheckCustomerExistsAsync(dto.CustomerId);
+                var customerExists = await _customerService.CheckCustomerExistsAsync(dto.CustomerId);
                 if (!customerExists)
                 {
                     return BadRequest(new { message = $"CustomerId {dto.CustomerId} does not exist." });
@@ -128,19 +103,13 @@ public class ProjectsController(
             dto.ProjectNumber = projectNumber;
             await _projectService.UpdateProjectAsync(dto);
 
-            await transaction.CommitAsync();
-
             return NoContent();
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             return StatusCode(500, new { message = "An error occurred while updating the project.", error = ex.Message });
         }
     }
-
-
-
 
     [HttpDelete("{projectNumber}")]
     public async Task<IActionResult> DeleteProject(string projectNumber)
@@ -152,15 +121,15 @@ public class ProjectsController(
     [HttpGet("statuses")]
     public async Task<IActionResult> GetStatuses()
     {
-        var statuses = await _context.Statuses.ToListAsync();
-        return Ok(statuses ?? new List<Status>());
+        var statuses = await _projectService.GetProjectStatusesAsync();
+        return Ok(statuses ?? new List<StatusDto>());
     }
 
     [HttpGet("services")]
     public async Task<IActionResult> GetServices()
     {
-        var services = await _context.Services.ToListAsync();
-        return Ok(services ?? new List<Service>());
+        var services = await _serviceService.GetAllServicesAsync();
+        return Ok(services ?? new List<ServiceDto>());
     }
 
     [HttpGet("staff")]
@@ -168,12 +137,8 @@ public class ProjectsController(
     {
         try
         {
-            var staff = await _context.Staff.Include(s => s.Role).ToListAsync();
-            if (staff == null || !staff.Any())
-            {
-                return NotFound(new { message = "No staff found in the database." });
-            }
-            return Ok(staff);
+            var staff = await _staffService.GetAllStaffAsync();
+            return staff.Any() ? Ok(staff) : NotFound(new { message = "No staff found in the database." });
         }
         catch (Exception ex)
         {
@@ -182,11 +147,10 @@ public class ProjectsController(
         }
     }
 
-
     [HttpGet("customers")]
     public async Task<IActionResult> GetCustomers()
     {
-        var customers = await _context.Customers.ToListAsync();
-        return Ok(customers ?? new List<Customer>());
+        var customers = await _customerService.GetAllCustomersAsync();
+        return Ok(customers ?? new List<CustomerDto>());
     }
 }

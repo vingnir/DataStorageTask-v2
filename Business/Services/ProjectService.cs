@@ -51,7 +51,7 @@ public class ProjectService(IProjectRepository projectRepo,
         });
     }
 
-    public async Task<ProjectDto> GetProjectByNumberAsync(string projectNumber)
+    public async Task<ProjectDto?> GetProjectByNumberAsync(string projectNumber)
     {
         var project = await _projectRepo.GetAsync(projectNumber);
         if (project == null) return null;
@@ -211,5 +211,29 @@ public class ProjectService(IProjectRepository projectRepo,
     {
         await _projectRepo.DeleteAsync(projectNumber);
         return true;
+    }
+
+
+    public async Task<IEnumerable<StatusDto>> GetProjectStatusesAsync()
+    {
+        var statuses = await _projectRepo.GetProjectStatusesAsync();
+
+
+        return statuses.Select(s => new StatusDto
+        {
+            StatusId = s.StatusId,
+            Name = s.Name
+        }).ToList();  
+    }
+
+    public async Task<IEnumerable<ServiceDto>> GetAllServicesAsync()
+    {
+        var services = await _serviceService.GetAllServicesAsync(); 
+
+        return services.Select(s => new ServiceDto
+        {
+            Name = s.Name,
+            HourlyPrice = s.HourlyPrice
+        }).ToList();  // ✅ Convert to DTOs
     }
 }
