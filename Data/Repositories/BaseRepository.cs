@@ -1,98 +1,101 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Data.Contexts;
 using Data.Interfaces;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Data.Repositories;
-
-public class BaseRepository<T> : IRepository<T> where T : class
+namespace Data.Repositories
 {
-    protected readonly AppDbContext _context;
-    private readonly DbSet<T> _dbSet;
-
-    public BaseRepository(AppDbContext context)
+    public class BaseRepository<T> : IRepository<T> where T : class
     {
-        _context = context;
-        _dbSet = _context.Set<T>();
-    }
+        protected readonly IUnitOfWork _unitOfWork;
+        protected readonly DbSet<T> _dbSet;
+        private readonly ILogger<BaseRepository<T>> _logger;
 
-    public virtual async Task<IEnumerable<T>> GetAllAsync()
-    {
-        var entities = await _dbSet.ToListAsync();
-        return entities;
-    }
-
-    public virtual async Task<T> GetAsync(object id)
-    {
-        if (id == null || (id is int intId && intId <= 0))
+        public BaseRepository(IUnitOfWork unitOfWork, ILogger<BaseRepository<T>> logger)
         {
-            throw new ArgumentException("Invalid ID value.", nameof(id));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _dbSet = _unitOfWork.GetDbSet<T>(); 
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        var entity = await _dbSet.FindAsync(id);
-        if (entity == null)
+        public virtual async Task<IEnumerable<T>> GetAllAsync()
         {
-            throw new InvalidOperationException($"Entity with id {id} not found.");
+            return await _dbSet.ToListAsync();
         }
-        return entity;
-    }
 
-    public virtual async Task AddAsync(T entity)
-    {
-        try
+        public virtual async Task<T> GetAsync(object id)
         {
-            await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("An error occurred while adding the entity.", ex);
-        }
-    }
-
-    public virtual async Task UpdateAsync(T entity)
-    {
-        try
-        {
-            _dbSet.Update(entity);
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("An error occurred while updating the entity.", ex);
-        }
-    }
-
-    public virtual async Task DeleteAsync(object id)
-    {
-        try
-        {
-            var entity = await _dbSet.FindAsync(id);
-            if (entity != null)
+            if (id == null || (id is int intId && intId <= 0))
             {
-                _dbSet.Remove(entity);
-                await _context.SaveChangesAsync();
+                throw new ArgumentException("Invalid ID value.", nameof(id));
+            }
+
+            var entity = await _dbSet.FindAsync(id);
+            if (entity == null)
+            {
+                throw new InvalidOperationException($"Entity with id {id} not found.");
+            }
+            return entity;
+        }
+
+        public virtual async Task AddAsync(T entity)
+        {
+            try
+            {
+                await _dbSet.AddAsync(entity);
+                await _unitOfWork.CommitAsync(); 
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("An error occurred while adding the entity.", ex);
             }
         }
-        catch (Exception ex)
+
+        public virtual async Task UpdateAsync(T entity)
         {
-            throw new InvalidOperationException("An error occurred while deleting the entity.", ex);
+            try
+            {
+                _dbSet.Update(entity);
+                await _unitOfWork.CommitAsync(); 
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("An error occurred while updating the entity.", ex);
+            }
+        }
+
+        public virtual async Task DeleteAsync(object id)
+        {
+            try
+            {
+                var entity = await _dbSet.FindAsync(id);
+                if (entity != null)
+                {
+                    _dbSet.Remove(entity);
+                    await _unitOfWork.CommitAsync(); 
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("An error occurred while deleting the entity.", ex);
+            }
+        }
+
+        public async Task ExecuteInTransactionAsync(Func<Task> action)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                await action();
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
     }
-
-    public async Task ExecuteInTransactionAsync(Func<Task> action)
-    {
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            await action();
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-        }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
-    }
-
 }

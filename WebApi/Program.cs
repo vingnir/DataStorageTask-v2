@@ -1,4 +1,4 @@
-using Business.Interfaces;
+﻿using Business.Interfaces;
 using Business.Services;
 using Data.Contexts;
 using Data.Interfaces;
@@ -41,25 +41,31 @@ builder.Services.AddSingleton(provider =>
     return optionsBuilder.Options;
 });
 
-// Register DbContext as scoped for repositories and services
+// Register DbContext as scoped for repositories and Unit of Work
 builder.Services.AddDbContext<AppDbContext>((provider, options) =>
 {
     var dbContextOptions = provider.GetRequiredService<DbContextOptions<AppDbContext>>();
     options.UseSqlServer(dbContextOptions.Extensions.OfType<RelationalOptionsExtension>().First().ConnectionString);
 });
 
-// Register DbContextFactory for short-lived queries
+// Register DbContextFactory for short-lived queries (optional)
 builder.Services.AddDbContextFactory<AppDbContext>((provider, options) =>
 {
     var dbContextOptions = provider.GetRequiredService<DbContextOptions<AppDbContext>>();
     options.UseSqlServer(dbContextOptions.Extensions.OfType<RelationalOptionsExtension>().First().ConnectionString);
 });
 
-// Register UnitOfWork as scoped to manage transactions
+// ✅ Register UnitOfWork to manage all database transactions
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// Register services with dependency on UnitOfWork instead of injecting DbContext directly, find out more @ https://learn.microsoft.com/en-us/aspnet/mvc/overview/older-versions/getting-started-with-ef-5-using-mvc-4/implementing-the-repository-and-unit-of-work-patterns-in-an-asp-net-mvc-application
+// ✅ Register Repositories that use UnitOfWork instead of injecting DbContext directly
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 
+// ✅ Register Services that rely on repositories (which are managed via UnitOfWork)
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
@@ -67,6 +73,13 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 var app = builder.Build();
+
+//// ✅ Ensure Database is Migrated (Ensures database schema updates before starting the app)
+//using (var scope = app.Services.CreateScope())
+//{
+//    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+//    dbContext.Database.Migrate();
+//}
 
 // Enable OpenAPI and Swagger UI in Development mode
 if (app.Environment.IsDevelopment())

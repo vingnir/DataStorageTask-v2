@@ -9,10 +9,10 @@ public class Staff
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int StaffId { get; set; }
-    public string Name { get; set; }
+    public required string Name { get; set; }
  
-    public int RoleId { get; set; } 
+    public int? RoleId { get; set; } 
 
     [ForeignKey("RoleId")]
-    public Role Role { get; set; }
+    public Role? Role { get; set; }
 }

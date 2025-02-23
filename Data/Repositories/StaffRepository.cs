@@ -1,16 +1,33 @@
-﻿using Data.Contexts;
-using Data.Entities;
+﻿using Data.Entities;
 using Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
-namespace Data.Repositories;
-
-public class StaffRepository(AppDbContext context) : BaseRepository<Staff>(context), IStaffRepository
+namespace Data.Repositories
 {
-    public async Task<Staff> GetByNameAndRoleIdAsync(string staffName, int roleId)
+    public class StaffRepository : BaseRepository<Staff>, IStaffRepository
     {
-        var staff = await (_context.Staff
-            .FirstOrDefaultAsync(s => s.Name == staffName && s.RoleId == roleId) ?? Task.FromResult<Staff?>(null));
-        return staff!;
+        private readonly ILogger<StaffRepository> _logger;
+
+        public StaffRepository(IUnitOfWork unitOfWork, ILogger<StaffRepository> logger)
+            : base(unitOfWork, logger) 
+        {
+            _logger = logger;
+        }
+
+        public async Task<Staff?> GetByNameAndRoleIdAsync(string staffName, int roleId)
+        {
+            if (string.IsNullOrEmpty(staffName) || roleId <= 0)
+            {
+                _logger.LogWarning("GetByNameAndRoleIdAsync was called with invalid parameters. StaffName: {StaffName}, RoleId: {RoleId}", staffName, roleId);
+                return null;
+            }
+
+            _logger.LogDebug("Fetching staff with Name: {StaffName} and RoleId: {RoleId}", staffName, roleId);
+
+            return await _unitOfWork.GetDbSet<Staff>()
+                .FirstOrDefaultAsync(s => s.Name == staffName && s.RoleId == roleId);
+        }
     }
 }

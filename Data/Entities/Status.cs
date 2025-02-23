@@ -9,7 +9,7 @@ public class Status
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int StatusId { get; set; }
-    public string Name { get; set; } 
+    public required string Name { get; set; } 
 
-    public ICollection<Project> Projects { get; set; }
+    public ICollection<Project>? Projects { get; set; }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Data.Repositories
 {
-    public class UnitOfWork : IUnitOfWork, IAsyncDisposable
+    public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
         private readonly ILogger<UnitOfWork> _logger;
@@ -81,6 +81,12 @@ namespace Data.Repositories
             {
                 await DisposeTransactionAsync();
             }
+        }
+
+        // ✅ Expose DbSet<T> safely for repositories
+        public DbSet<T> GetDbSet<T>() where T : class
+        {
+            return _context.Set<T>();
         }
 
         private async Task DisposeTransactionAsync()

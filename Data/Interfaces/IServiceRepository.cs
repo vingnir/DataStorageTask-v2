@@ -4,6 +4,6 @@ namespace Data.Interfaces;
 
 public interface IServiceRepository : IRepository<Service>
 {
-    Task<Service> GetByNameAsync(string serviceName);
+    Task<Service?> GetByNameAsync(string serviceName);
 
 }

@@ -1,18 +1,33 @@
-﻿using Data.Contexts;
-using Data.Entities;
+﻿using Data.Entities;
 using Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
-namespace Data.Repositories;
-
-public class ServiceRepository(AppDbContext context) : BaseRepository<Service>(context), IServiceRepository
+namespace Data.Repositories
 {
-    public async Task<Service> GetByNameAsync(string serviceName)
+    public class ServiceRepository : BaseRepository<Service>, IServiceRepository
     {
-        var service = await (_context.Services
-            .FirstOrDefaultAsync(s => s.Name == serviceName) ?? Task.FromResult<Service?>(null));
-        return service!;
+        private readonly ILogger<ServiceRepository> _logger;
+
+        public ServiceRepository(IUnitOfWork unitOfWork, ILogger<ServiceRepository> logger)
+            : base(unitOfWork, logger) 
+        {
+            _logger = logger;
+        }
+
+        public async Task<Service?> GetByNameAsync(string serviceName)
+        {
+            if (string.IsNullOrEmpty(serviceName))
+            {
+                _logger.LogWarning("GetByNameAsync was called with an empty service name.");
+                return null;
+            }
+
+            _logger.LogDebug("Fetching service with Name: {ServiceName}", serviceName);
+
+            return await _unitOfWork.GetDbSet<Service>()
+                .FirstOrDefaultAsync(s => s.Name == serviceName);
+        }
     }
-
-
 }

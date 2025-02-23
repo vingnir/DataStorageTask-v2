@@ -17,7 +17,10 @@ public class ProjectDto
     public string? StatusName { get; set; }
     public decimal TotalPrice { get; set; }
     public string? Description { get; set; }
+    public string Status { get; set; }
+    public string? StaffRoles { get; set; }
 
+    
 
     public ServiceDto Service { get; set; }
 
