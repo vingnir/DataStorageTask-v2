@@ -44,14 +44,20 @@ namespace Data.Repositories
         {
             try
             {
+                _logger.LogInformation("Adding new entity of type {EntityType}", typeof(T).Name);
+
                 await _dbSet.AddAsync(entity);
-                await _unitOfWork.CommitAsync(); 
+                await _unitOfWork.CommitAsync();  // 🔥 Ensure transaction is committed
+
+                _logger.LogInformation("{EntityType} entity added successfully.", typeof(T).Name);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("An error occurred while adding the entity.", ex);
+                _logger.LogError(ex, "Error occurred while adding entity of type {EntityType}", typeof(T).Name);
+                throw;
             }
         }
+
 
         public virtual async Task UpdateAsync(T entity)
         {
@@ -88,14 +94,20 @@ namespace Data.Repositories
             await _unitOfWork.BeginTransactionAsync();
             try
             {
+                _logger.LogInformation("Transaction started for ExecuteInTransactionAsync.");
+
                 await action();
                 await _unitOfWork.CommitAsync();
+
+                _logger.LogInformation("Transaction committed successfully.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Transaction failed. Rolling back.");
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
+
     }
 }

@@ -37,12 +37,14 @@ namespace Data.Repositories
         {
             if (_transaction == null)
             {
-                _logger.LogWarning("No active transaction to commit.");
+                _logger.LogInformation("No active transaction found. Performing direct SaveChanges.");
+                await _context.SaveChangesAsync();
                 return;
             }
 
             try
             {
+                _logger.LogInformation("Saving changes before committing transaction.");
                 await _context.SaveChangesAsync();
                 await _transaction.CommitAsync();
                 _logger.LogInformation("Transaction committed.");
@@ -69,8 +71,8 @@ namespace Data.Repositories
 
             try
             {
+                _logger.LogWarning("Rolling back transaction.");
                 await _transaction.RollbackAsync();
-                _logger.LogWarning("Transaction rolled back.");
             }
             catch (Exception ex)
             {
@@ -86,6 +88,10 @@ namespace Data.Repositories
         // ✅ Expose DbSet<T> safely for repositories
         public DbSet<T> GetDbSet<T>() where T : class
         {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(AppDbContext), "Cannot access DbSet after UnitOfWork is disposed.");
+            }
             return _context.Set<T>();
         }
 
@@ -121,6 +127,10 @@ namespace Data.Repositories
                 await _context.DisposeAsync();
                 _disposed = true;
                 GC.SuppressFinalize(this);
+            }
+            else if (_transaction != null)
+            {
+                await DisposeTransactionAsync();
             }
         }
     }

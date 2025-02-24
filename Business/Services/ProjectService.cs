@@ -7,6 +7,7 @@ namespace Business.Services;
 
 public class ProjectService(IProjectRepository projectRepo,
                       IStaffService staffService,
+                      IRoleService roleService,
                       IServiceService serviceService, 
                       ICustomerService customerService) : IProjectService
 {
@@ -14,6 +15,7 @@ public class ProjectService(IProjectRepository projectRepo,
     private readonly IStaffService _staffService = staffService;
     private readonly IServiceService _serviceService = serviceService;
     private readonly ICustomerService _customerService = customerService;
+    private readonly IRoleService _roleService = roleService;
 
 
 
@@ -145,9 +147,11 @@ public class ProjectService(IProjectRepository projectRepo,
 
             int serviceId = await _serviceService.EnsureServiceAsync(dto.Service);
 
-        int staffId = await _staffService.EnsureStaffAsync(dto.Staff);
+            int staffId = await _staffService.EnsureStaffAsync(dto.Staff);
+            int roleId = await _roleService.EnsureRoleAsync(dto.Staff.RoleName ?? "Unknown Role");
 
-        var projectEntity = new Project
+
+            var projectEntity = new Project
         {
             ProjectNumber = dto.ProjectNumber,
             Name = dto.Name,
